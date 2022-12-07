@@ -1,0 +1,1 @@
+La fonction loadIntelHex ne fonctionne pas à 115200 bauds. 
