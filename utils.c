@@ -347,4 +347,30 @@ unsigned int hex_inst;
 	return result;
 }
 
+/*
+ * dump contains bytes in ASCII form clumped together
+ * */
+void PrintDebugBuffers(char *dump, char *decode)
+{
+	unsigned int dump_len, codes;
+	//unsigned int dec_len, value;
 
+	dump_len = strlen(dump)/2;	//nb of bytes
+	//dec_len = strlen(decode);
+
+	//printf("Dump: %s, len: %d, Decode: %s, len: %d\r\n", dump, dump_len, decode, dec_len);
+	//printf("Scan dump: %d, codes: %0X\r\n", sscanf(dump,"%x",&codes), codes);
+	//printf("Scan decode: %d, value: %04X\r\n", sscanf(decode,"%x",&value), value);
+	sscanf(dump,"%x",&codes);
+
+	printf("PC: %04X ", z80Ice.PC);
+
+	// print code bytes separately
+	do
+	{
+		printf("%02X ", (codes >> ((dump_len-1) * 8)) & 0xff);
+	} while (--dump_len);
+
+	//TODO replace values with symbols
+	printf("\b\t%s\r\n", decode);
+}

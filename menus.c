@@ -571,6 +571,8 @@ void Z80DebuggerMenu(void)
 	char dump_buffer[80];
 	char decode_buffer[80];
 
+	Z80RESET(&z80Ice);
+
 	AnsiSaveCursorPosition();
 
 	do
@@ -582,18 +584,17 @@ void Z80DebuggerMenu(void)
 				"C: run until return\r\n"
 				"D: run until address\r\n"
 				"R: run\r\n" //FIXME no way to stop
-				"Q: quit\r\n\n"
+				"Q: quit\r\n"
 				);
-
-		c = toupper(getchar());
 
 		PrintRegs();
 
 		/* Decode the next instruction to be executed. */
 		Z80Debug(&z80Ice, dump_buffer, decode_buffer);
 
-		printf("%s\r\n", dump_buffer);
-		printf("%s\r\n", decode_buffer);
+		PrintDebugBuffers(dump_buffer, decode_buffer);
+
+		c = toupper(getchar());
 
 		switch(c)
 		{

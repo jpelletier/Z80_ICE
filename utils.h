@@ -29,7 +29,7 @@ bool SerialGetAsciiWord(ushort *addr);
 
 void mem_dump(ushort address);
 void PrintRegs(void);
-
 bool is_return_inst(char *ascii_inst);
+void PrintDebugBuffers(char *dump, char *decode);
 
 #endif /* UTILS_H_ */

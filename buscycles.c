@@ -77,11 +77,10 @@ void z80memWr(size_t param, ushort address, byte data)
 byte z80ioRd(size_t param, ushort address)
 {
 byte value;
-char c;
 
 	printf("Reading IO address %02X: ", address);
 
-	c = setdatabyte(&value);
+	setdatabyte(&value);
 
 	return value;
 }
