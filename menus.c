@@ -23,8 +23,9 @@ void mainMenu(void)
 {
 	char c;
 
-	printf("\033[2JZ80 ICE Main menu\r\n\n");
-	printf(
+	//Turns on software flow control
+	Uart_sendstring("\021\033[2JZ80 ICE Main menu\r\n\n");
+	Uart_sendstring(
 			"A: Test control lines\r\n"
 			"B: Test data lines\r\n"
 			"C: Test address lines\r\n"
@@ -34,7 +35,7 @@ void mainMenu(void)
 			"G: Z80 debugger\r\n"
 			"H: Z80 emulator\r\n"
 			);
-	c = toupper(getchar());
+	c = toupper(serial_getchar());
 	switch(c)
 	{
 		case 'A':
@@ -77,9 +78,9 @@ void ControlLinesMenu(void)
 
 	do
 	{
-		printf("\033[2JTest Control Lines\r\n\n");
-		printf("M1 MREQ IORQ RD WR RFSH BUSACK HALT\r\n");
-		printf(" %1d  %1d    %1d    %1d  %1d  %1d    %1d      %1d\r\n\n",
+		Uart_sendstring("\033[2JTest Control Lines\r\n\n");
+		Uart_sendstring("M1 MREQ IORQ RD WR RFSH BUSACK HALT\r\n");
+		serial_printf(" %1d  %1d    %1d    %1d  %1d  %1d    %1d      %1d\r\n\n",
 				getBit(BIT_M1,GPIOC->ODR),
 				getBit(BIT_MREQ,GPIOC->ODR),
 				getBit(BIT_IORQ,GPIOC->ODR),
@@ -89,15 +90,15 @@ void ControlLinesMenu(void)
 				getBit(BIT_BUSAK,GPIOF->ODR),
 				getBit(BIT_HALT,GPIOF->ODR));
 
-		printf("RST INT NMI WAIT BUSRQ\r\n");
-		printf(" %1d   %1d   %1d   %1d    %1d\r\n\n",
+		Uart_sendstring("RST INT NMI WAIT BUSRQ\r\n");
+		serial_printf(" %1d   %1d   %1d   %1d    %1d\r\n\n",
 				getBit(BIT_RST,GPIOF->IDR),
 				getBit(BIT_INT,GPIOF->IDR),
 				getBit(BIT_NMI,GPIOF->IDR),
 				getBit(BIT_WAIT,GPIOF->IDR),
 				getBit(BIT_BUSRQ,GPIOF->IDR));
 
-		printf(
+		Uart_sendstring(
 				"A: toggle M1\r\n"
 				"B: toggle MREQ\r\n"
 				"C: toggle IORQ\r\n"
@@ -108,7 +109,7 @@ void ControlLinesMenu(void)
 				"H: toggle HALT\r\n"
 				"Q: return to previous menu\r\n"
 				);
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 		switch(c)
 		{
 			case 'A':
@@ -158,9 +159,9 @@ void DataLinesMenu(void)
 
 	do
 	{
-		printf("\033[2JTest Data Lines\r\n\n");
-		printf("D7 D6 D5 D4 D3 D2 D1 D0\r\n");
-		printf(" %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
+		Uart_sendstring("\033[2JTest Data Lines\r\n\n");
+		Uart_sendstring("D7 D6 D5 D4 D3 D2 D1 D0\r\n");
+		serial_printf(" %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
 				getBit(7,GPIOC->ODR),
 				getBit(6,GPIOC->ODR),
 				getBit(5,GPIOC->ODR),
@@ -170,8 +171,8 @@ void DataLinesMenu(void)
 				getBit(1,GPIOC->ODR),
 				getBit(0,GPIOC->ODR));
 
-		printf("D7 D6 D5 D4 D3 D2 D1 D0\r\n");
-		printf(" %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
+		Uart_sendstring("D7 D6 D5 D4 D3 D2 D1 D0\r\n");
+		serial_printf(" %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
 				getBit(7,GPIOC->IDR),
 				getBit(6,GPIOC->IDR),
 				getBit(5,GPIOC->IDR),
@@ -181,7 +182,7 @@ void DataLinesMenu(void)
 				getBit(1,GPIOC->IDR),
 				getBit(0,GPIOC->IDR));
 
-		printf(
+		Uart_sendstring(
 				"A: toggle D7\r\n"
 				"B: toggle D6\r\n"
 				"C: toggle D5\r\n"
@@ -194,7 +195,7 @@ void DataLinesMenu(void)
 				"O: direction output\r\n"
 				"Q: return to previous menu\r\n"
 				);
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 		switch(c)
 		{
 			case 'A':
@@ -251,9 +252,9 @@ void AddressLinesMenu(void)
 
 	do
 	{
-		printf("\033[2JTest Address Lines\r\n\n");
-		printf("A15 A14 A13 A12 A11 A10 A9 A8 A7 A6 A5 A4 A3 A2 A1 A0\r\n");
-		printf("  %1d   %1d   %1d   %1d   %1d   %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
+		Uart_sendstring("\033[2JTest Address Lines\r\n\n");
+		Uart_sendstring("A15 A14 A13 A12 A11 A10 A9 A8 A7 A6 A5 A4 A3 A2 A1 A0\r\n");
+		serial_printf("  %1d   %1d   %1d   %1d   %1d   %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
 				getBit(15,GPIOD->ODR),
 				getBit(14,GPIOD->ODR),
 				getBit(13,GPIOD->ODR),
@@ -271,7 +272,7 @@ void AddressLinesMenu(void)
 				getBit( 1,GPIOD->ODR),
 				getBit( 0,GPIOD->ODR));
 
-		printf(
+		Uart_sendstring(
 				"A: toggle A15\r\n"
 				"B: toggle A14\r\n"
 				"C: toggle A13\r\n"
@@ -290,7 +291,7 @@ void AddressLinesMenu(void)
 				"P: toggle A0\r\n"
 				"Q: return to previous menu\r\n"
 				);
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 		switch(c)
 		{
 			case 'A':
@@ -362,8 +363,8 @@ void BusTransactionsMenu(void)
 
 	do
 	{
-		printf("\033[2JBus transactions\r\n\n");
-		printf(
+		Uart_sendstring("\033[2JBus transactions\r\n\n");
+		Uart_sendstring(
 				"A: set address\r\n"
 				"B: set data\r\n"
 				"C: do 1 fetch cycle\r\n"
@@ -374,7 +375,7 @@ void BusTransactionsMenu(void)
 				"H: do 1 INTA cycle\r\n"
 				"Q: quit\r\n\n"
 				);
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 		switch(c)
 		{
 			case 'A':
@@ -384,24 +385,24 @@ void BusTransactionsMenu(void)
 				setdatabyte(&data_byte);
 				break;
 			case 'C':
-				printf("Fetch at %04X: %02X\r\n", address, z80Fetch(0,address));
+				serial_printf("Fetch at %04X: %02X\r\n", address, z80Fetch(0,address));
 				break;
 			case 'D':
-				printf("Mem read at %04X: %02X\r\n", address, z80memRd(0,address));
+				serial_printf("Mem read at %04X: %02X\r\n", address, z80memRd(0,address));
 				break;
 			case 'E':
-				printf("Mem write at %04X: %02X\r\n", address, data_byte);
+				serial_printf("Mem write at %04X: %02X\r\n", address, data_byte);
 				z80memWr(0,address, data_byte);
 				break;
 			case 'F':
-				printf("IO read at %04X: %02X\r\n", address, z80ioRd(0,address));
+				serial_printf("IO read at %04X: %02X\r\n", address, z80ioRd(0,address));
 				break;
 			case 'G':
-				printf("IO write at %04X: %02X\r\n", address, data_byte);
+				serial_printf("IO write at %04X: %02X\r\n", address, data_byte);
 				z80ioWr(0,address, data_byte);
 				break;
 			case 'H':
-				printf("Int ack: %02X\r\n", z80iack(0));
+				serial_printf("Int ack: %02X\r\n", z80iack(0));
 				break;
 			case 'Q':
 				return;
@@ -419,8 +420,8 @@ void BusRepeatTransactionsMenu(void)
 	ushort address;
 	byte data_byte;
 
-	printf("\033[2JBus transaction loops\r\n\n");
-	printf(
+	Uart_sendstring("\033[2JBus transaction loops\r\n\n");
+	Uart_sendstring(
 			"A: set address\r\n"
 			"B: set data\r\n"
 			"C: fetch cycles\r\n"
@@ -431,7 +432,7 @@ void BusRepeatTransactionsMenu(void)
 			"H: INTA cycles\r\n\n"
 			"Q: quit\r\n\n"
 			);
-	c = toupper(getchar());
+	c = toupper(serial_getchar());
 	switch(c)
 	{
 		case 'A':
@@ -444,51 +445,51 @@ void BusRepeatTransactionsMenu(void)
 			AnsiSaveCursorPosition();
 			do
 			{
-				printf("Fetch at %04X: %02X\r\n", address, z80Fetch(0,address));
+				serial_printf("Fetch at %04X: %02X\r\n", address, z80Fetch(0,address));
 				AnsiRestoreCursorPosition();
-			} while (true);
+			} while (!IsDataAvailable());
 			break;
 		case 'D':
 			AnsiSaveCursorPosition();
 			do
 			{
-				printf("Mem read at %04X: %02X\r\n", address, z80memRd(0,address));
+				serial_printf("Mem read at %04X: %02X\r\n", address, z80memRd(0,address));
 				AnsiRestoreCursorPosition();
-			} while (true);
+			} while (!IsDataAvailable());
 			break;
 		case 'E':
 			AnsiSaveCursorPosition();
 			do
 			{
-				printf("Mem write at %04X: %02X\r\n", address, data_byte);
+				serial_printf("Mem write at %04X: %02X\r\n", address, data_byte);
 				z80memWr(0,address, data_byte);
 				AnsiRestoreCursorPosition();
-			} while (true);
+			} while (!IsDataAvailable());
 			break;
 		case 'F':
 			AnsiSaveCursorPosition();
 			do
 			{
-				printf("IO read at %04X: %02X\r\n", address, z80ioRd(0,address));
+				serial_printf("IO read at %04X: %02X\r\n", address, z80ioRd(0,address));
 				AnsiRestoreCursorPosition();
-			} while (true);
+			} while (!IsDataAvailable());
 			break;
 		case 'G':
 			AnsiSaveCursorPosition();
 			do
 			{
-				printf("IO write at %04X: %02X\r\n", address, data_byte);
+				serial_printf("IO write at %04X: %02X\r\n", address, data_byte);
 				z80ioWr(0,address, data_byte);
 				AnsiRestoreCursorPosition();
-			} while (true);
+			} while (!IsDataAvailable());
 			break;
 		case 'H':
 			AnsiSaveCursorPosition();
 			do
 			{
-				printf("Int ack: %02X\r\n", z80iack(0));
+				serial_printf("Int ack: %02X\r\n", z80iack(0));
 				AnsiRestoreCursorPosition();
-			} while (true);
+			} while (!IsDataAvailable());
 			break;
 		default:
 			;
@@ -505,8 +506,8 @@ void MemoryOperationsMenu(void)
 
 	do
 	{
-		printf("\033[2JMemory operations\r\n\n");
-		printf(
+		Uart_sendstring("\033[2JMemory operations\r\n\n");
+		Uart_sendstring(
 				"E: edit memory\r\n"
 				"L: load Intel hex file\r\n"
 				"F: fill memory\r\n"
@@ -515,7 +516,7 @@ void MemoryOperationsMenu(void)
 				"O: output\r\n"
 				"Q: quit\r\n\n"
 				);
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 		switch(c)
 		{
 			case 'E':
@@ -532,16 +533,16 @@ void MemoryOperationsMenu(void)
 				moveMemory();
 				break;
 			case 'I':
-				printf("Input port: ");
+				Uart_sendstring("Input port: ");
 				c = setdatabyte(&port);
 				if (c != 'Q')
 				{
 					data_byte = z80ioRd(0, port);
-					printf(" %02X\r\n",data_byte);
+					serial_printf(" %02X\r\n",data_byte);
 				}
 				break;
 			case 'O':
-				printf("Output port: ");
+				Uart_sendstring("Output port: ");
 				c = setdatabyte(&port);
 				if (c != 'Q')
 				{
@@ -550,7 +551,7 @@ void MemoryOperationsMenu(void)
 					if (c != 'Q')
 					{
 						z80ioWr(0,port, data_byte);
-						printf("\r\n");
+						Uart_sendstring("\r\n");
 					}
 				}
 				break;
@@ -570,6 +571,7 @@ void Z80DebuggerMenu(void)
 
 	char dump_buffer[80];
 	char decode_buffer[80];
+	byte value;
 
 	Z80RESET(&z80Ice);
 
@@ -577,14 +579,13 @@ void Z80DebuggerMenu(void)
 
 	do
 	{
-		printf("\033[2JZ80 debugger\r\n\n");
-		printf(
-				"A: reset\r\n"
-				"B: step\r\n"
-				"C: run until return\r\n"
-				"D: run until address\r\n"
-				"R: run\r\n" //FIXME no way to stop
-				"Q: quit\r\n"
+		Uart_sendstring("\033[2JZ80 debugger\r\n\n");
+		Uart_sendstring(
+				"A: reset\tC: run until return\tI: step in Int Pending\r\n"
+				"B: step \tD: run until address\tN: step in NMI Pending\r\n"
+				"E: edit registers\r\n"
+				"R: run\r\n"
+				"Q: quit\r\n\n"
 				);
 
 		PrintRegs();
@@ -594,7 +595,7 @@ void Z80DebuggerMenu(void)
 
 		PrintDebugBuffers(dump_buffer, decode_buffer);
 
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 
 		switch(c)
 		{
@@ -602,6 +603,7 @@ void Z80DebuggerMenu(void)
 				Z80RESET(&z80Ice);
 				break;
 
+			case ' ':
 			case 'B':
 				Z80Execute(&z80Ice);
 				break;
@@ -630,16 +632,28 @@ void Z80DebuggerMenu(void)
 				{
 					Z80Execute(&z80Ice);
 				}
+				break;
+			case 'E':
+				//Edit registers
+				reg_ed();
+				break;
 
+			case 'I':
+				value = z80iack(0);
+				Interrupt_Pending = false;
+
+				Z80INT(&z80Ice, value);
+				break;
+			case 'N':
+				NMI_Pending = false;
+				Z80NMI(&z80Ice);
 				break;
 
 			case 'R':
 				do
 				{
 					Z80Execute(&z80Ice);
-
-					//FIXME find a way to detect no keypress
-				} while (true);
+				} while (!IsDataAvailable());
 				break;
 
 			case 'Q':
@@ -664,8 +678,8 @@ void Z80EmulatorMenu(void)
 
 	do
 	{
-		printf("\033[2JZ80 emulator\r\n\n");
-		printf(
+		Uart_sendstring("\033[2JZ80 emulator\r\n\n");
+		Uart_sendstring(
 				"A: reset\r\n"
 				"B: dump registers\r\n"
 				"D: debug next instruction\r\n"
@@ -677,7 +691,7 @@ void Z80EmulatorMenu(void)
 				"Q: quit\r\n\n"
 				);
 
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 
 		switch(c)
 		{
@@ -694,8 +708,8 @@ void Z80EmulatorMenu(void)
 				/* Decode the next instruction to be executed. */
 				Z80Debug(&z80Ice, dump_buffer, decode_buffer);
 
-				printf("%s\r\n", dump_buffer);
-				printf("%s\r\n", decode_buffer);
+				serial_printf("%s\r\n", dump_buffer);
+				serial_printf("%s\r\n", decode_buffer);
 				GetAnyKey();
 				break;
 

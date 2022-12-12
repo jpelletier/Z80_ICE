@@ -24,15 +24,15 @@ void move_cursor(ushort hl)
 byte row = ((hl & 0xff) >> 4) + 3;
 byte column = 3 * (hl & 0x0f) + 8; //6;
 
-	printf("\033[%d;%dH",row,column);
+	serial_printf("\033[%d;%dH",row,column);
 }
 
 void restore_color(ushort address)
 {
 #ifdef USE_CODE_TEST_BUFFER
-	printf("\b\b\033[m%02X",Z80Mem[address]);
+	serial_printf("\b\b\033[m%02X",Z80Mem[address]);
 #else
-	printf("\b\b\033[m%02X",z80memRd(0,address));
+	serial_printf("\b\b\033[m%02X",z80memRd(0,address));
 #endif
 }
 
@@ -87,19 +87,19 @@ void mem_dump(ushort address)
 
 	hl = address & 0xFF00;
 
-	printf("      0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\r\n");
+	Uart_sendstring("      0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\r\n");
 
     do
     {
-		printf("%04X ",hl);
+		serial_printf("%04X ",hl);
 
 		b = 16;
 		do
 		{
 #ifdef USE_CODE_TEST_BUFFER
-			printf("%02X ",Z80Mem[hl++]);
+			serial_printf("%02X ",Z80Mem[hl++]);
 #else
-			printf("%02X ",z80memRd(0,hl++));
+			serial_printf("%02X ",z80memRd(0,hl++));
 #endif
 
 		} while (--b);
@@ -115,10 +115,10 @@ void mem_dump(ushort address)
 			a = z80memRd(0,hl++);
 #endif
 			if ((a < 0x20) || (a > 0x7f)) a = '.';
-			putchar(a);
+			Uart_write(a);
 		} while (--b);
 
-		printf("\r\n");
+		Uart_sendstring("\r\n");
 
     } while (hl & 0x00f0);
 }
@@ -126,7 +126,7 @@ void mem_dump(ushort address)
 void update_dump(ushort hl)
 {
 	//home
-	printf("\033[m\033[2;1H");
+	Uart_sendstring("\033[m\033[2;1H");
 
 	//redraw
 	mem_dump(hl & 0xff00);
@@ -157,19 +157,19 @@ void binary_ed(ushort address)
 
 	restore_color(hl);
 
-	printf("\033[2JBinary editor\r\n");
+	Uart_sendstring("\033[2JBinary editor\r\n");
     mem_dump(address);
 
-    printf("\r\nLeft: \033[37;42mctl-A\033[m  right: \033[37;42mctl-D\033[m  down: \033[37;42mctl-X\033[m up: \033[37;42mctl-W\033[m\r\n");
-    printf("High: \033[37;42mH\033[m  low: \033[37;42mL\033[m  Relative jump: \033[37;42mJ\033[m  Absolute jump: \033[37;42mG\033[m\r\n");
-    printf("Previous block: \033[37;42mP\033[m  next block: \033[37;42mN\033[m  store value: \033[37;42menter\033[m  exit editor: \033[37;42mX\033[m\r\n");
+    Uart_sendstring("\r\nLeft: \033[37;42mctl-A\033[m  right: \033[37;42mctl-D\033[m  down: \033[37;42mctl-X\033[m up: \033[37;42mctl-W\033[m\r\n");
+    Uart_sendstring("High: \033[37;42mH\033[m  low: \033[37;42mL\033[m  Relative jump: \033[37;42mJ\033[m  Absolute jump: \033[37;42mG\033[m\r\n");
+    Uart_sendstring("Previous block: \033[37;42mP\033[m  next block: \033[37;42mN\033[m  store value: \033[37;42menter\033[m  exit editor: \033[37;42mX\033[m\r\n");
 
     //goto row 3 column 6
-    printf("\033[3;6H");
+    Uart_sendstring("\033[3;6H");
 
     do
     {
-        printf("\033[44m");
+        Uart_sendstring("\033[44m");
 
 #ifdef USE_CODE_TEST_BUFFER
     	b = Z80Mem[hl];
@@ -265,8 +265,8 @@ void binary_ed(ushort address)
             	;
 		}
 
-        putchar('\b');
-    	putchar('\b');
+        Uart_write('\b');
+    	Uart_write('\b');
 
     } while (true);
 }

@@ -8,9 +8,11 @@
 #include <sys/times.h>
 #include <limits.h>
 #include <signal.h>
-#include "../Inc/retarget.h"
+//#include "../Inc/retarget.h"
 #include <stdint.h>
 #include <stdio.h>
+
+#include "z80_ice.h"
 
 #if !defined(OS_USE_SEMIHOSTING)
 
@@ -40,20 +42,40 @@ void RetargetInit(UART_HandleTypeDef *huart) {
 }
 
 int _write(int fd, char* ptr, int len) {
+#ifdef USE_CODE_RING_BUFFER
+  if (fd == STDOUT_FILENO || fd == STDERR_FILENO)
+  {
+	Uart_write(*ptr);
+	return 1;
+  }
+#else //USE_CODE_RING_BUFFER
   HAL_StatusTypeDef hstatus;
 
-  if (fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+  if (fd == STDOUT_FILENO || fd == STDERR_FILENO)
+  {
     hstatus = HAL_UART_Transmit(gHuart, (uint8_t *) ptr, len, HAL_MAX_DELAY);
     if (hstatus == HAL_OK)
       return len;
     else
       return EIO;
   }
+#endif //USE_CODE_RING_BUFFER
   errno = EBADF;
   return -1;
 }
 
-int _read(int fd, char* ptr, int len) {
+int _read(int fd, char* ptr, int len)
+{
+#ifdef USE_CODE_RING_BUFFER
+  if (fd == STDIN_FILENO)
+  {
+	  if (IsDataAvailable() > 0)
+	  {
+		  *ptr = Uart_read();
+		  return 1;
+	  } else return EIO;
+  }
+#else //USE_CODE_RING_BUFFER
   HAL_StatusTypeDef hstatus;
 
   if (fd == STDIN_FILENO) {
@@ -63,6 +85,8 @@ int _read(int fd, char* ptr, int len) {
     else
       return EIO;
   }
+#endif //USE_CODE_RING_BUFFER
+
   errno = EBADF;
   return -1;
 }

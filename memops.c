@@ -25,17 +25,17 @@ void fillMemory(void)
 	ushort i;
 	byte data_byte;
 
-	printf("Fill start: ");
+	Uart_sendstring("Fill start: ");
 
 	c = setaddress(&start);
 
 	if (c != 'Q')
 	{
-		printf(" to end: ");
+		Uart_sendstring(" to end: ");
 		c = setaddress(&end);
 		if (c != 'Q')
 		{
-			printf(" value: ");
+			Uart_sendstring(" value: ");
 			c = setdatabyte(&data_byte);
 			if (c != 'Q')
 			{
@@ -59,17 +59,17 @@ void moveMemory(void)
 	ushort i, length;
 	byte data_byte;
 
-	printf("Move start: ");
+	Uart_sendstring("Move start: ");
 
 	c = setaddress(&start);
 
 	if (c != 'Q')
 	{
-		printf(" to end: ");
+		Uart_sendstring(" to end: ");
 		c = setaddress(&end);
 		if (c != 'Q')
 		{
-			printf(" dest: ");
+			Uart_sendstring(" dest: ");
 			c = setaddress(&dest);
 			if (c != 'Q')
 			{
@@ -113,16 +113,16 @@ void moveMemory(void)
 #endif
 						} while (--i);
 					}
-					printf("Move done!\r\n");
+					Uart_sendstring("Move done!\r\n");
 				}
 				else
 				{
-					printf("No move: source = dest\r\n");
+					Uart_sendstring("No move: source = dest\r\n");
 				}
 			}
 			else
 			{
-				printf("Cancelled move\r\n");
+				Uart_sendstring("Cancelled move\r\n");
 			}
 		}
 	}
@@ -146,17 +146,21 @@ void loadIntelHex(void)
 
 	bool checksumBad = false;
 
-	printf("\r\nWaiting for Hex file transfer\r\n");
+	Uart_sendstring("\r\nWaiting for Hex file transfer\r\n");
 
 	nb_record = 0;
 	BytesTotal = 0;
 
 	do
     {
-		putchar('\021');	//XON
-    	gets(line_input);
-    	puts(line_input);
-    	putchar('\023');	//XOFF
+		Uart_write('\021');	//XON
+		serial_gets(line_input);
+
+#ifdef USE_CODE_DEBUG_INTEL_HEX
+		Uart_sendstring(line_input);
+#endif
+
+		Uart_write('\023');	//XOFF
 
     	nb_record++;
 
@@ -166,9 +170,11 @@ void loadIntelHex(void)
     	result = sscanf(line_input, ":%02X%04X%02X%s", &nb_bytes, &address, &record_type, Data_Str);
     	if (result != 4)
     	{
-			printf("\r\nLine %d: data record, address: %04X, nb bytes: %d\r\n", nb_record, address, nb_bytes);
-			printf("Data_Str: %s\r\n", Data_Str);
-			printf("166: Error in line %d of hex file\n", nb_record);
+#ifdef USE_CODE_DEBUG_INTEL_HEX
+			serial_printf("\r\nLine %d: data record, address: %04X, nb bytes: %d\r\n", nb_record, address, nb_bytes);
+			serial_printf("Data_Str: %s\r\n", Data_Str);
+#endif
+    		serial_printf("%d: Error in line %d of hex file\n", __LINE__, nb_record);
     	}
 
     	checksum = nb_bytes + (address >> 8) + (address & 0xff) + record_type;
@@ -177,12 +183,14 @@ void loadIntelHex(void)
 		switch(record_type)
 		{
 			case 0x00:
-				printf("\r\nLine %d: data record, address: %04X, nb bytes: %d\r\n", nb_record, address, nb_bytes);
+#ifdef USE_CODE_DEBUG_INTEL_HEX
+				serial_printf("\r\nLine %d: data record, address: %04X, nb bytes: %d\r\n", nb_record, address, nb_bytes);
+#endif
 				// data records
 				do
 				{
 					result = sscanf(str, "%02X", &data_byte);
-					if (result != 1) printf("179: Error in line %d of hex file\r\n", nb_record);
+					if (result != 1) serial_printf("%d: Error in line %d of hex file\r\n", __LINE__, nb_record);
 
 					//store each byte
 #ifdef USE_CODE_TEST_BUFFER
@@ -197,29 +205,35 @@ void loadIntelHex(void)
 					checksum += data_byte;
 				} while (--nb_bytes);
 
-				printf("nb_bytes: %d, calculated checksum: %02X\r\n", nb_bytes, checksum & 0xFF);
-
+#ifdef USE_CODE_DEBUG_INTEL_HEX
+				serial_printf("nb_bytes: %d, calculated checksum: %02X\r\n", nb_bytes, checksum & 0xFF);
+#endif
 				//get checksum
 				result = sscanf(str, "%02X", &data_byte);
-				if (result != 1) printf("196: Error %d in line %d of hex file\n", result, nb_record);
+				if (result != 1) serial_printf("%d: Error %d in line %d of hex file\n", __LINE__, result, nb_record);
 
 				//verify checksum
 				checksum += data_byte;
 
-				if ((checksum & 0xFF) == 0) putchar('.');
+				if ((checksum & 0xFF) == 0)
+				{
+					Uart_write('.');
+				}
 				else
 				{
-					printf("203: Checksum error in line %d: should be %02X\n",
-							nb_record, (256 - checksum) & 0xFF);
+					serial_printf("%d: Checksum error in line %d: should be %02X\n",
+							__LINE__, nb_record, (256 - checksum) & 0xFF);
 
 					checksumBad = true;
-					putchar('*');
+					Uart_write('x');
 				}
-				if ((nb_record % 32) == 0) printf("\r\n");
+				if ((nb_record & 0x1F) == 0) Uart_sendstring("\r\n");
 				break;
 
 			case 0x01:
-				printf("\r\nLine %d: last record, address: %04X, nb bytes: %d\r\n", nb_record, address, nb_bytes);
+#ifdef USE_CODE_DEBUG_INTEL_HEX
+				serial_printf("\r\nLine %d: last record, address: %04X, nb bytes: %d\r\n", nb_record, address, nb_bytes);
+#endif
 				//last record
 				//get checksum
 				sscanf(str, "%02X", &data_byte);
@@ -227,18 +241,19 @@ void loadIntelHex(void)
 				//verify checksum
 				checksum += data_byte;
 
-				printf("nb_bytes: %d, calculated checksum: %02X\r\n", nb_bytes, checksum & 0xFF);
-
+#ifdef USE_CODE_DEBUG_INTEL_HEX
+				serial_printf("nb_bytes: %d, calculated checksum: %02X\r\n", nb_bytes, checksum & 0xFF);
+#endif
 				checksumBad = ((checksum & 0xFF) != 0);
 
 				//hex_end
 				if (checksumBad)
 				{
-					printf("\r\nChecksum bad\r\n");
+					Uart_sendstring("\r\nChecksum bad\r\n");
 				}
 				else
 				{
-					printf("\r\nTransfer completed, number of bytes received: %d\r\n",BytesTotal);
+					serial_printf("\r\nTransfer completed, number of bytes received: %d\r\n",BytesTotal);
 				}
 				return;
 
@@ -246,9 +261,10 @@ void loadIntelHex(void)
 				;
 		}
     } while (true);
+
+	//Turn back on the flow control
+	Uart_write('\021');	//XON
 }
-
-
 
 
 

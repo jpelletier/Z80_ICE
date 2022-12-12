@@ -20,12 +20,17 @@
 #include "z80_ice.h"
 
 Z80Context z80Ice;
+bool Interrupt_Pending = false;
+bool NMI_Pending = false;
 
 #ifdef USE_CODE_TEST_BUFFER
 byte Z80Mem[65536];
 #endif //USE_CODE_TEST_BUFFER
 
 void setup(void) {
+#ifdef USE_CODE_RING_BUFFER
+	Ringbuf_init();
+#endif //USE_CODE_RING_BUFFER
 	/*
 	How to Use printf on STM32
 	https://shawnhymel.com/1873/how-to-use-printf-on-stm32/

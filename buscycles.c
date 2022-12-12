@@ -78,7 +78,7 @@ byte z80ioRd(size_t param, ushort address)
 {
 byte value;
 
-	printf("Reading IO address %02X: ", address);
+	serial_printf("Reading IO address %02X: ", address);
 
 	setdatabyte(&value);
 
@@ -87,12 +87,18 @@ byte value;
 
 void z80ioWr(size_t param, ushort address, byte io_data)
 {
-	printf("Writing IO address %02X: %02X\r\n", address, io_data);
+	serial_printf("Writing IO address %02X: %02X\r\n", address, io_data);
 }
 
 byte z80iack(size_t param)
 {
-	return 0; //FIXME
+	byte value;
+
+	serial_printf("Reading IACK vector : \r\n");
+
+	setdatabyte(&value);
+
+	return value;
 }
 
 #else

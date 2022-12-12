@@ -5,24 +5,32 @@
  *      Author: jpellet
  */
 
+//signal  STM32F4  Z80
+//
+//nHALT		F9		18
+//nBUSAK	F10		23
+//nBUSRQ	F0		25
+//nRESET	F1		26
+//nNMI		F2		17
+//nINT		F3		16
+//nWAIT		F4		24
+//CLK		F5		6
+
+//nRFSH		C13		28
+//nM1		C12		27
+//nIORQ		C11		20
+//nMREQ		C10		19
+//nWR		C9		22
+//nRD		C8		21
+
+//D0-7		C0-7	14,15,12,8,7,9,10,13
+//A0-7		D0-7	30-37
+//A8-15		D8-15	38,39,40,1,2,3,4,5
+//+5V				11
+//GND				29
+
 #ifndef Z80_BITS_H_
 #define Z80_BITS_H_
-
-//nHALT		F9
-//nBUSAK	F10
-//nBUSRQ	F0
-//nRESET	F1
-//nNMI		F2
-//nINT		F3
-//nWAIT		F4
-//CLK		F5
-
-//nRFSH		C13
-//nM1		C12
-//nIORQ		C11
-//nMREQ		C10
-//nWR		C9
-//nRD		C8
 
 #define BIT_HALT	9
 #define BIT_BUSAK	10

@@ -8,6 +8,10 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+void serial_gets(char *buffer);
+char serial_getchar(void);
+int serial_printf(char *format, ...);
+
 void removeStringTrailingNewline(char *str);
 void GetAnyKey(void);
 

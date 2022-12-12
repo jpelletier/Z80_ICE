@@ -31,6 +31,55 @@ char App_getchar(void)
 }
 */
 
+void serial_gets(char *buffer)
+{
+int result;
+
+	do
+	{
+		result = serial_getchar();
+
+		switch(result)
+		{
+		//case '\r':
+		case '\n':
+			*buffer = 0;
+			return;
+		default:
+			*buffer++ = result & 0xff;
+		}
+	} while (true);
+}
+
+char serial_getchar(void)
+{
+int result;
+
+	do
+	{
+		result = Uart_read();
+	} while (result == -1);
+
+	return result;
+}
+
+char buffer[80];
+
+int serial_printf(char *format, ...)
+{
+   va_list aptr;
+   int ret;
+
+   va_start(aptr, format);
+   ret = vsprintf(buffer, format, aptr);
+   va_end(aptr);
+
+#ifdef USE_CODE_RING_BUFFER
+   Uart_sendstring(buffer);
+#endif
+   return(ret);
+}
+
 // https://siongui.github.io/2013/01/09/c-remove-string-trailing-newline-carriage-return/
 void removeStringTrailingNewline(char *str)
 {
@@ -45,25 +94,25 @@ void removeStringTrailingNewline(char *str)
 
 void GetAnyKey(void)
 {
-	printf("\r\nPress any key to continue");
+	Uart_sendstring("\r\nPress any key to continue");
 
-	getchar();
-	printf("\033[1K\r");
+	serial_getchar();
+	Uart_sendstring("\033[1K\r");
 }
 
 void AnsiClearDisplay(void)
 {
-	printf("\033[2J");
+	Uart_sendstring("\033[2J");
 }
 
 void AnsiSaveCursorPosition(void)
 {
-	printf("\033[s");
+	Uart_sendstring("\033[s");
 }
 
 void AnsiRestoreCursorPosition(void)
 {
-	printf("\033[u");
+	Uart_sendstring("\033[u");
 }
 
 int getBit(int bit, int value)
@@ -106,9 +155,9 @@ char setaddress(ushort *address)
 
 	do
 	{
-		printf("%04X",temp);
+		serial_printf("%04X",temp);
 
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 
 		switch(c)
 		{
@@ -147,7 +196,7 @@ char setaddress(ushort *address)
 			default:
 				;
 		}
-		printf("\b\b\b\b");
+		Uart_sendstring("\b\b\b\b");
 	} while (true);
 
 	return 0;
@@ -172,9 +221,9 @@ char in_b_k(byte *data)
 
 	do
 	{
-		printf("%02X",temp);
+		serial_printf("%02X",temp);
 
-		c = toupper(getchar());
+		c = toupper(serial_getchar());
 
 		switch(c)
 		{
@@ -209,7 +258,7 @@ char in_b_k(byte *data)
 				*data = temp;
 				return c;
 		}
-		printf("\b\b");
+		Uart_sendstring("\b\b");
 	} while (true);
 
 	return 0;
@@ -255,13 +304,13 @@ bool SerialGetAsciiByte(byte *data)
 char c, b;
 bool result = false;
 
-	c = getchar();
+	c = serial_getchar();
 	if (Ascii2Hex(&c))
 	{
 		//put the first nibble (MSB) into bits 7-4
 		b = c << 4;
 
-		c = getchar();
+		c = serial_getchar();
 		if (Ascii2Hex(&c))
 		{
 			//combine first nibble (MSB) with second nibble (LSB)
@@ -290,47 +339,41 @@ bool SerialGetAsciiWord(ushort *addr)
 }
 
 /*
- *             S Z - H - P N C                                   SP: 0000
+ * NMI INT     S Z - H - P N C  IM: 00  I: 00  R: 00  PC : 0000  SP: 0000
  * A : 00  F : 0 0 0 0 0 0 0 0  BC : 0000  DE : 0000  HL : 0000  IX: 0000
  * A': 00  F': 0 0 0 0 0 0 0 0  BC': 0000  DE': 0000  HL': 0000  IY: 0000
- *
- *
- *
  */
 
 void PrintRegs(void)
 {
-/*
-	printf("AF: %04X\tAF': %04X\r\n",z80Ice.R1.wr.AF, z80Ice.R2.wr.AF);
-	printf("BC: %04X\tBC': %04X\r\n",z80Ice.R1.wr.BC, z80Ice.R2.wr.BC);
-	printf("DE: %04X\tDE': %04X\r\n",z80Ice.R1.wr.DE, z80Ice.R2.wr.DE);
-	printf("HL: %04X\tHL': %04X\r\n",z80Ice.R1.wr.HL, z80Ice.R2.wr.HL);
-	printf("IX: %04X\tIY : %04X\r\n",z80Ice.R1.wr.IX, z80Ice.R2.wr.IY);
-	printf("SP: %04X\r\n",z80Ice.R1.wr.SP);
-*/
-	printf("            S Z - H - P N C                                   SP: %04X\r\n",z80Ice.R1.wr.SP);
-	printf("A : %02X  F : %d %d %d %d %d %d %d %d  BC : %04X  DE : %04X  HL : %04X  IX: %04X\r\n",
-		z80Ice.R1.wr.AF>>8,
-		(z80Ice.R1.wr.AF & 0x80)>>7,
-		(z80Ice.R1.wr.AF & 0x40)>>6,
-		(z80Ice.R1.wr.AF & 0x20)>>5,
-		(z80Ice.R1.wr.AF & 0x10)>>4,
-		(z80Ice.R1.wr.AF & 0x08)>>3,
-		(z80Ice.R1.wr.AF & 0x04)>>2,
-		(z80Ice.R1.wr.AF & 0x02)>>1,
-		(z80Ice.R1.wr.AF & 0x01),
+	if (NMI_Pending) serial_printf("\033[30;43mNMI\033[m "); else serial_printf("NMI ");
+	if (Interrupt_Pending) serial_printf("\033[30;43mINT\033[m"); else serial_printf("INT");
+
+	serial_printf("     S Z - H - P N C  IM: %02X  I: %02X  R: %02X  PC : %04X  SP: %04X\r\n",
+		z80Ice.IM, z80Ice.I, z80Ice.R, z80Ice.PC, z80Ice.R1.wr.SP);
+
+	serial_printf("A : %02X  F : %d %d %d %d %d %d %d %d  BC : %04X  DE : %04X  HL : %04X  IX: %04X\r\n",
+		z80Ice.R1.br.A,
+		(z80Ice.R1.br.F & 0x80)>>7,
+		(z80Ice.R1.br.F & 0x40)>>6,
+		(z80Ice.R1.br.F & 0x20)>>5,
+		(z80Ice.R1.br.F & 0x10)>>4,
+		(z80Ice.R1.br.F & 0x08)>>3,
+		(z80Ice.R1.br.F & 0x04)>>2,
+		(z80Ice.R1.br.F & 0x02)>>1,
+		(z80Ice.R1.br.F & 0x01),
 		z80Ice.R1.wr.BC, z80Ice.R1.wr.DE, z80Ice.R1.wr.HL, z80Ice.R1.wr.IX);
 
-	printf("A': %02X  F': %d %d %d %d %d %d %d %d  BC': %04X  DE': %04X  HL': %04X  IY: %04X\r\n\n",
-		z80Ice.R2.wr.AF>>8,
-		(z80Ice.R2.wr.AF & 0x80)>>7,
-		(z80Ice.R2.wr.AF & 0x40)>>6,
-		(z80Ice.R2.wr.AF & 0x20)>>5,
-		(z80Ice.R2.wr.AF & 0x10)>>4,
-		(z80Ice.R2.wr.AF & 0x08)>>3,
-		(z80Ice.R2.wr.AF & 0x04)>>2,
-		(z80Ice.R2.wr.AF & 0x02)>>1,
-		(z80Ice.R2.wr.AF & 0x01),
+	serial_printf("A': %02X  F': %d %d %d %d %d %d %d %d  BC': %04X  DE': %04X  HL': %04X  IY: %04X\r\n\n",
+		z80Ice.R2.br.A,
+		(z80Ice.R2.br.F & 0x80)>>7,
+		(z80Ice.R2.br.F & 0x40)>>6,
+		(z80Ice.R2.br.F & 0x20)>>5,
+		(z80Ice.R2.br.F & 0x10)>>4,
+		(z80Ice.R2.br.F & 0x08)>>3,
+		(z80Ice.R2.br.F & 0x04)>>2,
+		(z80Ice.R2.br.F & 0x02)>>1,
+		(z80Ice.R2.br.F & 0x01),
 		z80Ice.R2.wr.BC, z80Ice.R2.wr.DE, z80Ice.R2.wr.HL, z80Ice.R2.wr.IY);
 }
 
@@ -348,6 +391,7 @@ unsigned int hex_inst;
 }
 
 /*
+ * dump and decode are the strings returned by the libZ80 library
  * dump contains bytes in ASCII form clumped together
  * */
 void PrintDebugBuffers(char *dump, char *decode)
@@ -358,19 +402,19 @@ void PrintDebugBuffers(char *dump, char *decode)
 	dump_len = strlen(dump)/2;	//nb of bytes
 	//dec_len = strlen(decode);
 
-	//printf("Dump: %s, len: %d, Decode: %s, len: %d\r\n", dump, dump_len, decode, dec_len);
-	//printf("Scan dump: %d, codes: %0X\r\n", sscanf(dump,"%x",&codes), codes);
-	//printf("Scan decode: %d, value: %04X\r\n", sscanf(decode,"%x",&value), value);
+	//serial_printf("Dump: %s, len: %d, Decode: %s, len: %d\r\n", dump, dump_len, decode, dec_len);
+	//serial_printf("Scan dump: %d, codes: %0X\r\n", sscanf(dump,"%x",&codes), codes);
+	//serial_printf("Scan decode: %d, value: %04X\r\n", sscanf(decode,"%x",&value), value);
 	sscanf(dump,"%x",&codes);
 
-	printf("PC: %04X ", z80Ice.PC);
+	serial_printf("PC: %04X ", z80Ice.PC);
 
 	// print code bytes separately
 	do
 	{
-		printf("%02X ", (codes >> ((dump_len-1) * 8)) & 0xff);
+		serial_printf("%02X ", (codes >> ((dump_len-1) * 8)) & 0xff);
 	} while (--dump_len);
 
 	//TODO replace values with symbols
-	printf("\b\t%s\r\n", decode);
+	serial_printf("\b\t%s\r\n", decode);
 }
