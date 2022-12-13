@@ -339,17 +339,18 @@ bool SerialGetAsciiWord(ushort *addr)
 }
 
 /*
- * NMI INT     S Z - H - P N C  IM: 00  I: 00  R: 00  PC : 0000  SP: 0000
- * A : 00  F : 0 0 0 0 0 0 0 0  BC : 0000  DE : 0000  HL : 0000  IX: 0000
- * A': 00  F': 0 0 0 0 0 0 0 0  BC': 0000  DE': 0000  HL': 0000  IY: 0000
- */
+NMI INT STP S Z - H - P N C  IM: 00  I: 00  R: 00  PC : 0000  SP: 0000
+A : 00  F : 0 0 0 0 0 0 0 0  BC : 0000  DE : 0000  HL : 0000  IX: 0000
+A': 00  F': 0 0 0 0 0 0 0 0  BC': 0000  DE': 0000  HL': 0000  IY: 0000
+*/
 
 void PrintRegs(void)
 {
 	if (NMI_Pending) serial_printf("\033[30;43mNMI\033[m "); else serial_printf("NMI ");
-	if (Interrupt_Pending) serial_printf("\033[30;43mINT\033[m"); else serial_printf("INT");
+	if (Interrupt_Pending) serial_printf("\033[30;43mINT\033[m "); else serial_printf("INT ");
+	if (z80Ice.halted) serial_printf("\033[37;41mHLT\033[m"); else serial_printf("\033[30;43mSTP\033[m");
 
-	serial_printf("     S Z - H - P N C  IM: %02X  I: %02X  R: %02X  PC : %04X  SP: %04X\r\n",
+	serial_printf(" S Z - H - P N C  IM: %02X  I: %02X  R: %02X  PC : %04X  SP: %04X\r\n",
 		z80Ice.IM, z80Ice.I, z80Ice.R, z80Ice.PC, z80Ice.R1.wr.SP);
 
 	serial_printf("A : %02X  F : %d %d %d %d %d %d %d %d  BC : %04X  DE : %04X  HL : %04X  IX: %04X\r\n",

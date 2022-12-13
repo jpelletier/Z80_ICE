@@ -612,18 +612,21 @@ void Z80DebuggerMenu(void)
 				if (is_return_inst(dump_buffer)) break;
 
 				// Run until return
+				serial_printf("\033[9;9H\033[37;42mRUN\033[m");
+
 				do
 				{
 					Z80Execute(&z80Ice);
+					if (z80Ice.halted) serial_printf("\033[9;9H\033[37;41mHLT\033[m");
 
 					/* Decode the next instruction to be executed. */
 					Z80Debug(&z80Ice, dump_buffer, decode_buffer);
 				} while (!is_return_inst(dump_buffer));
-
 				break;
 
 			case 'D':
 				// Run until address
+				serial_printf("\033[9;9H\033[37;42mRUN\033[m");
 
 				//Get address
 				if (setaddress(&address) != 0x0d) break;
@@ -631,8 +634,14 @@ void Z80DebuggerMenu(void)
 				while (z80Ice.PC != address)
 				{
 					Z80Execute(&z80Ice);
+					if (z80Ice.halted)
+					{
+						serial_printf("\033[9;9H\033[37;41mHLT\033[m");
+						break;
+					}
 				}
 				break;
+
 			case 'E':
 				//Edit registers
 				reg_ed();
@@ -650,9 +659,17 @@ void Z80DebuggerMenu(void)
 				break;
 
 			case 'R':
+				// Run until keypressed
+				serial_printf("\033[9;9H\033[37;42mRUN\033[m");
+
 				do
 				{
 					Z80Execute(&z80Ice);
+					if (z80Ice.halted)
+					{
+						serial_printf("\033[9;9H\033[37;41mHLT\033[m");
+						break;
+					}
 				} while (!IsDataAvailable());
 				break;
 
