@@ -24,50 +24,38 @@ void mainMenu(void)
 	char c;
 
 	//Turns on software flow control
-	Uart_sendstring("\021\033[2JZ80 ICE Main menu\r\n\n");
+	Uart_sendstring("\021\033[2JZ80 ICE Main menu v2\r\n\n");
 	Uart_sendstring(
-			"A: Test control lines\r\n"
-			"B: Test data lines\r\n"
-			"C: Test address lines\r\n"
-			"D: Bus transactions\r\n"
-			"E: Bus repeated transactions\r\n"
-			"F: Memory operations\r\n"
-			"G: Z80 debugger\r\n"
-			"H: Z80 emulator\r\n"
+			"A: Manual mode\r\n"
+			"B: Bus transactions\r\n"
+			"C: Bus repeated transactions\r\n"
+			"D: Memory operations\r\n"
+			"E: Z80 debugger\r\n"
 			);
 	c = toupper(serial_getchar());
 	switch(c)
 	{
 		case 'A':
-			ControlLinesMenu();
+			ManualModeMenu();
 			break;
 		case 'B':
-			DataLinesMenu();
-			break;
-		case 'C':
-			AddressLinesMenu();
-			break;
-		case 'D':
 			BusTransactionsMenu();
 			break;
-		case 'E':
+		case 'C':
 			BusRepeatTransactionsMenu();
 			break;
-		case 'F':
+		case 'D':
 			MemoryOperationsMenu();
 			break;
-		case 'G':
+		case 'E':
 			Z80DebuggerMenu();
-			break;
-		case 'H':
-			Z80EmulatorMenu();
 			break;
 		default:
 			;
 	}
 }
 
-void ControlLinesMenu(void)
+void ManualModeMenu(void)
 {
 	char c;
 
@@ -78,9 +66,9 @@ void ControlLinesMenu(void)
 
 	do
 	{
-		Uart_sendstring("\033[2JTest Control Lines\r\n\n");
-		Uart_sendstring("M1 MREQ IORQ RD WR RFSH BUSACK HALT\r\n");
-		serial_printf(" %1d  %1d    %1d    %1d  %1d  %1d    %1d      %1d\r\n\n",
+		Uart_sendstring("\033[2JManual mode\r\n\n");
+		Uart_sendstring("M1 MREQ IORQ RD WR RFSH BUSACK HALT\tD7 D6 D5 D4 D3 D2 D1 D0\r\n");
+		serial_printf(" %1d  %1d    %1d    %1d  %1d  %1d    %1d      %1d\t %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
 				getBit(BIT_M1,GPIOC->ODR),
 				getBit(BIT_MREQ,GPIOC->ODR),
 				getBit(BIT_IORQ,GPIOC->ODR),
@@ -88,80 +76,8 @@ void ControlLinesMenu(void)
 				getBit(BIT_WR,GPIOC->ODR),
 				getBit(BIT_RFSH,GPIOC->ODR),
 				getBit(BIT_BUSAK,GPIOF->ODR),
-				getBit(BIT_HALT,GPIOF->ODR));
+				getBit(BIT_HALT,GPIOF->ODR),
 
-		Uart_sendstring("RST INT NMI WAIT BUSRQ\r\n");
-		serial_printf(" %1d   %1d   %1d   %1d    %1d\r\n\n",
-				getBit(BIT_RST,GPIOF->IDR),
-				getBit(BIT_INT,GPIOF->IDR),
-				getBit(BIT_NMI,GPIOF->IDR),
-				getBit(BIT_WAIT,GPIOF->IDR),
-				getBit(BIT_BUSRQ,GPIOF->IDR));
-
-		Uart_sendstring(
-				"A: toggle M1\r\n"
-				"B: toggle MREQ\r\n"
-				"C: toggle IORQ\r\n"
-				"D: toggle RD\r\n"
-				"E: toggle WR\r\n"
-				"F: toggle RFSH\r\n"
-				"G: toggle BUSACK\r\n"
-				"H: toggle HALT\r\n"
-				"Q: return to previous menu\r\n"
-				);
-		c = toupper(serial_getchar());
-		switch(c)
-		{
-			case 'A':
-				GPIOC->ODR ^= MASK_M1;
-				break;
-			case 'B':
-				GPIOC->ODR ^= MASK_MREQ;
-				break;
-			case 'C':
-				GPIOC->ODR ^= MASK_IORQ;
-				break;
-			case 'D':
-				GPIOC->ODR ^= MASK_RD;
-				break;
-			case 'E':
-				GPIOC->ODR ^= MASK_WR;
-				break;
-			case 'F':
-				GPIOC->ODR ^= MASK_RFSH;
-				break;
-			case 'G':
-				GPIOF->ODR ^= MASK_BUSAK;
-				break;
-			case 'H':
-				GPIOF->ODR ^= MASK_HALT;
-				break;
-
-			case 'Q':
-				return;
-			default:
-				;
-		}
-
-		AnsiRestoreCursorPosition();
-
-	} while (true);
-}
-
-void DataLinesMenu(void)
-{
-	char c;
-
-	//INACTIVE
-	GPIOC->ODR = 0xFF00;
-
-	AnsiSaveCursorPosition();
-
-	do
-	{
-		Uart_sendstring("\033[2JTest Data Lines\r\n\n");
-		Uart_sendstring("D7 D6 D5 D4 D3 D2 D1 D0\r\n");
-		serial_printf(" %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
 				getBit(7,GPIOC->ODR),
 				getBit(6,GPIOC->ODR),
 				getBit(5,GPIOC->ODR),
@@ -171,8 +87,14 @@ void DataLinesMenu(void)
 				getBit(1,GPIOC->ODR),
 				getBit(0,GPIOC->ODR));
 
-		Uart_sendstring("D7 D6 D5 D4 D3 D2 D1 D0\r\n");
-		serial_printf(" %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
+		Uart_sendstring("RST INT NMI WAIT BUSRQ\t\tD7 D6 D5 D4 D3 D2 D1 D0\r\n");
+		serial_printf(" %1d   %1d   %1d   %1d    %1d\t\t%1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
+				getBit(BIT_RST,GPIOF->IDR),
+				getBit(BIT_INT,GPIOF->IDR),
+				getBit(BIT_NMI,GPIOF->IDR),
+				getBit(BIT_WAIT,GPIOF->IDR),
+				getBit(BIT_BUSRQ,GPIOF->IDR),
+
 				getBit(7,GPIOC->IDR),
 				getBit(6,GPIOC->IDR),
 				getBit(5,GPIOC->IDR),
@@ -182,77 +104,6 @@ void DataLinesMenu(void)
 				getBit(1,GPIOC->IDR),
 				getBit(0,GPIOC->IDR));
 
-		Uart_sendstring(
-				"A: toggle D7\r\n"
-				"B: toggle D6\r\n"
-				"C: toggle D5\r\n"
-				"D: toggle D4\r\n"
-				"E: toggle D3\r\n"
-				"F: toggle D2\r\n"
-				"G: toggle D1\r\n"
-				"H: toggle D0\r\n"
-				"I: direction input\r\n"
-				"O: direction output\r\n"
-				"Q: return to previous menu\r\n"
-				);
-		c = toupper(serial_getchar());
-		switch(c)
-		{
-			case 'A':
-				GPIOC->ODR ^= 0x80;
-				break;
-			case 'B':
-				GPIOC->ODR ^= 0x40;
-				break;
-			case 'C':
-				GPIOC->ODR ^= 0x20;
-				break;
-			case 'D':
-				GPIOC->ODR ^= 0x10;
-				break;
-			case 'E':
-				GPIOC->ODR ^= 0x08;
-				break;
-			case 'F':
-				GPIOC->ODR ^= 0x04;
-				break;
-			case 'G':
-				GPIOC->ODR ^= 0x02;
-				break;
-			case 'H':
-				GPIOC->ODR ^= 0x01;
-				break;
-			case 'I':
-				//set data direction in
-				GPIOC->MODER = 0x55550000;
-				break;
-			case 'O':
-				//set data direction out
-				GPIOC->MODER = 0x55555555;
-				break;
-			case 'Q':
-				return;
-			default:
-				;
-		}
-
-		AnsiRestoreCursorPosition();
-
-	} while (true);
-}
-
-void AddressLinesMenu(void)
-{
-	char c;
-
-	//INACTIVE
-	GPIOC->ODR = 0xFF00;
-
-	AnsiSaveCursorPosition();
-
-	do
-	{
-		Uart_sendstring("\033[2JTest Address Lines\r\n\n");
 		Uart_sendstring("A15 A14 A13 A12 A11 A10 A9 A8 A7 A6 A5 A4 A3 A2 A1 A0\r\n");
 		serial_printf("  %1d   %1d   %1d   %1d   %1d   %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d  %1d\r\n\n",
 				getBit(15,GPIOD->ODR),
@@ -273,76 +124,123 @@ void AddressLinesMenu(void)
 				getBit( 0,GPIOD->ODR));
 
 		Uart_sendstring(
-				"A: toggle A15\r\n"
-				"B: toggle A14\r\n"
-				"C: toggle A13\r\n"
-				"D: toggle A12\r\n"
-				"E: toggle A11\r\n"
-				"F: toggle A10\r\n"
-				"G: toggle A9\r\n"
-				"H: toggle A8\r\n"
-				"I: toggle A7\r\n"
-				"J: toggle A6\r\n"
-				"K: toggle A5\r\n"
-				"L: toggle A4\r\n"
-				"M: toggle A3\r\n"
-				"N: toggle A2\r\n"
-				"O: toggle A1\r\n"
-				"P: toggle A0\r\n"
-				"Q: return to previous menu\r\n"
+				"Toggle bits:\r\n"
+				"A: M1       I: A15   Q: A7   7: D7\r\n"
+				"B: MREQ     J: A14   R: A6   6: D6\r\n"
+				"C: IORQ     K: A13   S: A5   5: D5\r\n"
+				"D: RD       L: A12   T: A4   4: D4\r\n"
+				"E: WR       M: A11   U: A3   3: D3\r\n"
+				"F: RFSH     N: A10   V: A2   2: D2\r\n"
+				"G: BUSACK   O: A9    W: A1   1: D1\r\n"
+				"H: HALT     P: A8    X: A0   0: D0\r\n\n"
+				"Z: return to previous menu\r\n"
 				);
-		c = toupper(serial_getchar());
-		switch(c)
-		{
+
+			c = toupper(serial_getchar());
+			switch(c)
+			{
+			case '7':
+				GPIOC->ODR ^= 0x80;
+				break;
+			case '6':
+				GPIOC->ODR ^= 0x40;
+				break;
+			case '5':
+				GPIOC->ODR ^= 0x20;
+				break;
+			case '4':
+				GPIOC->ODR ^= 0x10;
+				break;
+			case '3':
+				GPIOC->ODR ^= 0x08;
+				break;
+			case '2':
+				GPIOC->ODR ^= 0x04;
+				break;
+			case '1':
+				GPIOC->ODR ^= 0x02;
+				break;
+			case '0':
+				GPIOC->ODR ^= 0x01;
+				break;
 			case 'A':
-				GPIOD->ODR ^= 0x8000;
+				GPIOC->ODR ^= MASK_M1;
 				break;
 			case 'B':
-				GPIOD->ODR ^= 0x4000;
+				GPIOC->ODR ^= MASK_MREQ;
 				break;
 			case 'C':
-				GPIOD->ODR ^= 0x2000;
+				GPIOC->ODR ^= MASK_IORQ;
 				break;
 			case 'D':
-				GPIOD->ODR ^= 0x1000;
+				//set data direction in
+				GPIOC->MODER = 0x55550000;
+				GPIOC->ODR ^= MASK_RD;
 				break;
 			case 'E':
-				GPIOD->ODR ^= 0x0800;
+				//set data direction out
+				GPIOC->MODER = 0x55555555;
+				GPIOC->ODR ^= MASK_WR;
 				break;
 			case 'F':
-				GPIOD->ODR ^= 0x0400;
+				GPIOC->ODR ^= MASK_RFSH;
 				break;
 			case 'G':
-				GPIOD->ODR ^= 0x0200;
+				GPIOF->ODR ^= MASK_BUSAK;
 				break;
 			case 'H':
-				GPIOD->ODR ^= 0x0100;
+				GPIOF->ODR ^= MASK_HALT;
 				break;
+
 			case 'I':
-				GPIOD->ODR ^= 0x0080;
+				GPIOD->ODR ^= 0x8000;
 				break;
 			case 'J':
-				GPIOD->ODR ^= 0x0040;
+				GPIOD->ODR ^= 0x4000;
 				break;
 			case 'K':
-				GPIOD->ODR ^= 0x0020;
+				GPIOD->ODR ^= 0x2000;
 				break;
 			case 'L':
-				GPIOD->ODR ^= 0x0010;
+				GPIOD->ODR ^= 0x1000;
 				break;
 			case 'M':
-				GPIOD->ODR ^= 0x0008;
+				GPIOD->ODR ^= 0x0800;
 				break;
 			case 'N':
-				GPIOD->ODR ^= 0x0004;
+				GPIOD->ODR ^= 0x0400;
 				break;
 			case 'O':
-				GPIOD->ODR ^= 0x0002;
+				GPIOD->ODR ^= 0x0200;
 				break;
 			case 'P':
-				GPIOD->ODR ^= 0x0001;
+				GPIOD->ODR ^= 0x0100;
 				break;
 			case 'Q':
+				GPIOD->ODR ^= 0x0080;
+				break;
+			case 'R':
+				GPIOD->ODR ^= 0x0040;
+				break;
+			case 'S':
+				GPIOD->ODR ^= 0x0020;
+				break;
+			case 'T':
+				GPIOD->ODR ^= 0x0010;
+				break;
+			case 'U':
+				GPIOD->ODR ^= 0x0008;
+				break;
+			case 'V':
+				GPIOD->ODR ^= 0x0004;
+				break;
+			case 'W':
+				GPIOD->ODR ^= 0x0002;
+				break;
+			case 'X':
+				GPIOD->ODR ^= 0x0001;
+				break;
+			case 'Z':
 				return;
 			default:
 				;
@@ -420,80 +318,90 @@ void BusRepeatTransactionsMenu(void)
 	ushort address;
 	byte data_byte;
 
-	Uart_sendstring("\033[2JBus transaction loops\r\n\n");
-	Uart_sendstring(
-			"A: set address\r\n"
-			"B: set data\r\n"
-			"C: fetch cycles\r\n"
-			"D: memory read cycles\r\n"
-			"E: memory write cycles\r\n"
-			"F: IO port read cycles\r\n"
-			"G: IO port write cycles\r\n"
-			"H: INTA cycles\r\n\n"
-			"Q: quit\r\n\n"
-			);
-	c = toupper(serial_getchar());
-	switch(c)
+	AnsiSaveCursorPosition();
+
+	do
 	{
-		case 'A':
-			setaddress(&address);
-			break;
-		case 'B':
-			setdatabyte(&data_byte);
-			break;
-		case 'C':
-			AnsiSaveCursorPosition();
-			do
-			{
-				serial_printf("Fetch at %04X: %02X\r\n", address, z80Fetch(0,address));
-				AnsiRestoreCursorPosition();
-			} while (!IsDataAvailable());
-			break;
-		case 'D':
-			AnsiSaveCursorPosition();
-			do
-			{
-				serial_printf("Mem read at %04X: %02X\r\n", address, z80memRd(0,address));
-				AnsiRestoreCursorPosition();
-			} while (!IsDataAvailable());
-			break;
-		case 'E':
-			AnsiSaveCursorPosition();
-			do
-			{
-				serial_printf("Mem write at %04X: %02X\r\n", address, data_byte);
-				z80memWr(0,address, data_byte);
-				AnsiRestoreCursorPosition();
-			} while (!IsDataAvailable());
-			break;
-		case 'F':
-			AnsiSaveCursorPosition();
-			do
-			{
-				serial_printf("IO read at %04X: %02X\r\n", address, z80ioRd(0,address));
-				AnsiRestoreCursorPosition();
-			} while (!IsDataAvailable());
-			break;
-		case 'G':
-			AnsiSaveCursorPosition();
-			do
-			{
-				serial_printf("IO write at %04X: %02X\r\n", address, data_byte);
-				z80ioWr(0,address, data_byte);
-				AnsiRestoreCursorPosition();
-			} while (!IsDataAvailable());
-			break;
-		case 'H':
-			AnsiSaveCursorPosition();
-			do
-			{
-				serial_printf("Int ack: %02X\r\n", z80iack(0));
-				AnsiRestoreCursorPosition();
-			} while (!IsDataAvailable());
-			break;
-		default:
-			;
-	}
+		Uart_sendstring("\033[2JBus transaction loops\r\n\n");
+		Uart_sendstring(
+				"A: set address\r\n"
+				"B: set data\r\n"
+				"C: fetch cycles\r\n"
+				"D: memory read cycles\r\n"
+				"E: memory write cycles\r\n"
+				"F: IO port read cycles\r\n"
+				"G: IO port write cycles\r\n"
+				"H: INTA cycles\r\n\n"
+				"Q: quit\r\n\n"
+				);
+		c = toupper(serial_getchar());
+		switch(c)
+		{
+			case 'A':
+				setaddress(&address);
+				break;
+			case 'B':
+				setdatabyte(&data_byte);
+				break;
+			case 'C':
+				AnsiSaveCursorPosition();
+				do
+				{
+					serial_printf("Fetch at %04X: %02X\r\n", address, z80Fetch(0,address));
+					AnsiRestoreCursorPosition();
+				} while (!IsDataAvailable());
+				break;
+			case 'D':
+				AnsiSaveCursorPosition();
+				do
+				{
+					serial_printf("Memory read at %04X: %02X\r\n", address, z80memRd(0,address));
+					AnsiRestoreCursorPosition();
+				} while (!IsDataAvailable());
+				break;
+			case 'E':
+				AnsiSaveCursorPosition();
+				do
+				{
+					serial_printf("Memory write at %04X: %02X\r\n", address, data_byte);
+					z80memWr(0,address, data_byte);
+					AnsiRestoreCursorPosition();
+				} while (!IsDataAvailable());
+				break;
+			case 'F':
+				AnsiSaveCursorPosition();
+				do
+				{
+					serial_printf("IO read at %04X: %02X\r\n", address, z80ioRd(0,address));
+					AnsiRestoreCursorPosition();
+				} while (!IsDataAvailable());
+				break;
+			case 'G':
+				AnsiSaveCursorPosition();
+				do
+				{
+					serial_printf("IO write at %04X: %02X\r\n", address, data_byte);
+					z80ioWr(0,address, data_byte);
+					AnsiRestoreCursorPosition();
+				} while (!IsDataAvailable());
+				break;
+			case 'H':
+				AnsiSaveCursorPosition();
+				do
+				{
+					serial_printf("Int ack: %02X\r\n", z80iack(0));
+					AnsiRestoreCursorPosition();
+				} while (!IsDataAvailable());
+				break;
+			case 'Q':
+				return;
+			default:
+				;
+		}
+
+		AnsiRestoreCursorPosition();
+
+	} while (true);
 }
 
 void MemoryOperationsMenu(void)
@@ -539,6 +447,7 @@ void MemoryOperationsMenu(void)
 				{
 					data_byte = z80ioRd(0, port);
 					serial_printf(" %02X\r\n",data_byte);
+					GetAnyKey();
 				}
 				break;
 			case 'O':
@@ -546,7 +455,8 @@ void MemoryOperationsMenu(void)
 				c = setdatabyte(&port);
 				if (c != 'Q')
 				{
-					putchar(' ');
+					Uart_write(' ');
+					//putchar(' ');
 					c = setdatabyte(&data_byte);
 					if (c != 'Q')
 					{
@@ -564,6 +474,11 @@ void MemoryOperationsMenu(void)
 	} while (true);
 }
 
+/*
+NMI INT RUN S Z - H - P N C  IM: 02  I: FF  R: 3B  PC : C35A  SP: FDF6
+A : 02  F : 0 0 0 1 0 0 0 0  BC : 0468  DE : FFAC  HL : 000B  IX: 0000
+A': 00  F': 0 0 0 0 0 0 0 0  BC': 0000  DE': 0000  HL': 0000  IY: 0000
+*/
 void Z80DebuggerMenu(void)
 {
 	char c;
@@ -571,9 +486,6 @@ void Z80DebuggerMenu(void)
 
 	char dump_buffer[80];
 	char decode_buffer[80];
-	byte value;
-
-	Z80RESET(&z80Ice);
 
 	AnsiSaveCursorPosition();
 
@@ -583,7 +495,7 @@ void Z80DebuggerMenu(void)
 		Uart_sendstring(
 				"A: reset\tC: run until return\tI: step in Int Pending\r\n"
 				"B: step \tD: run until address\tN: step in NMI Pending\r\n"
-				"E: edit registers\r\n"
+				"E: edit regs\tF: run until int\r\n"
 				"R: run\r\n"
 				"Q: quit\r\n\n"
 				);
@@ -629,7 +541,12 @@ void Z80DebuggerMenu(void)
 				serial_printf("\033[9;9H\033[37;42mRUN\033[m");
 
 				//Get address
-				if (setaddress(&address) != 0x0d) break;
+				Uart_sendstring("\033[7;17HAddress: \033[44m");
+				address = 0;
+				c = setaddress(&address);
+				serial_printf("\033[7;17H\033[m\033[0K");
+
+				if (c != 0x0d) break;
 
 				while (z80Ice.PC != address)
 				{
@@ -647,15 +564,26 @@ void Z80DebuggerMenu(void)
 				reg_ed();
 				break;
 
-			case 'I':
-				value = z80iack(0);
-				Interrupt_Pending = false;
+			case 'F':
+				// Run until interrupt
+				serial_printf("\033[9;9H\033[37;42mRUN\033[m");
 
-				Z80INT(&z80Ice, value);
+				do
+				{
+					Z80Execute(&z80Ice);
+					if (z80Ice.halted) serial_printf("\033[9;9H\033[37;41mHLT\033[m");
+				} while (!Interrupt_Pending);
+				break;
+
+			case 'I':
+				Interrupt_Pending = false;
+				Z80INT(&z80Ice, z80iack(0));
+				Z80Execute(&z80Ice);
 				break;
 			case 'N':
 				NMI_Pending = false;
 				Z80NMI(&z80Ice);
+				Z80Execute(&z80Ice);
 				break;
 
 			case 'R':
@@ -664,6 +592,18 @@ void Z80DebuggerMenu(void)
 
 				do
 				{
+					if (NMI_Pending)
+					{
+						NMI_Pending = false;
+						Z80NMI(&z80Ice);
+					}
+
+					if (Interrupt_Pending)
+					{
+						Interrupt_Pending = false;
+						Z80INT(&z80Ice, z80iack(0));
+					}
+
 					Z80Execute(&z80Ice);
 					if (z80Ice.halted)
 					{
@@ -682,77 +622,3 @@ void Z80DebuggerMenu(void)
 	} while (true);
 }
 
-void Z80EmulatorMenu(void)
-{
-	char c;
-	byte int_value;
-	unsigned nb_Tstates;
-
-	char dump_buffer[256];
-	char decode_buffer[256];
-
-	AnsiSaveCursorPosition();
-
-	do
-	{
-		Uart_sendstring("\033[2JZ80 emulator\r\n\n");
-		Uart_sendstring(
-				"A: reset\r\n"
-				"B: dump registers\r\n"
-				"D: debug next instruction\r\n"
-				"E: execute instruction\r\n"
-				"F: execute nb of Tstates\r\n"
-				"I: interrupt\r\n"
-				"N: NMI\r\n"
-				//"T: toggle simulator/emulator\r\n"
-				"Q: quit\r\n\n"
-				);
-
-		c = toupper(serial_getchar());
-
-		switch(c)
-		{
-			case 'A':
-				Z80RESET(&z80Ice);
-				break;
-
-			case 'B':
-				PrintRegs();
-				GetAnyKey();
-				break;
-
-			case 'D':
-				/* Decode the next instruction to be executed. */
-				Z80Debug(&z80Ice, dump_buffer, decode_buffer);
-
-				serial_printf("%s\r\n", dump_buffer);
-				serial_printf("%s\r\n", decode_buffer);
-				GetAnyKey();
-				break;
-
-			case 'E':
-				Z80Execute(&z80Ice);
-				break;
-
-			case 'F':
-				nb_Tstates = 100; //FIXME
-				Z80ExecuteTStates(&z80Ice,nb_Tstates);
-				break;
-
-			case 'I':
-				int_value = 0; //FIXME
-				Z80INT(&z80Ice, int_value);
-				break;
-
-			case 'N':
-				Z80NMI(&z80Ice);
-				break;
-
-			case 'Q':
-				return;
-		}
-
-		AnsiRestoreCursorPosition();
-
-	} while (true);
-}
