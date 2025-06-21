@@ -29,6 +29,7 @@ byte Z80Mem[65536];
 
 void setup(void) {
 #ifdef USE_CODE_RING_BUFFER
+	MX_USART2_UART_Init();
 	Ringbuf_init();
 #endif //USE_CODE_RING_BUFFER
 	/*

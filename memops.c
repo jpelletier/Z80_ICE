@@ -46,6 +46,11 @@ void fillMemory(void)
 #else
 					z80memWr(0,i,data_byte);
 #endif
+					if ((i & 0x00ff) == 0)
+					{
+						progress(i >> 8);
+
+					}
 				}
 			}
 		}
@@ -266,7 +271,31 @@ void loadIntelHex(void)
 	Uart_write('\021');	//XON
 }
 
+void progress(int i)
+{
+char c;
 
+	Uart_write(' ');
+
+	switch(i & 0x03)
+	{
+	case 0x00:
+		c = '|';
+		break;
+	case 0x01:
+		c = '/';
+		break;
+	case 0x02:
+		c = '-';
+		break;
+	case 0x03:
+		c = '\\';
+		break;
+	}
+
+	Uart_write(c);
+	Uart_sendstring("\033[2D");
+}
 
 
 

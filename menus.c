@@ -529,7 +529,11 @@ void Z80DebuggerMenu(void)
 				do
 				{
 					Z80Execute(&z80Ice);
-					if (z80Ice.halted) serial_printf("\033[9;9H\033[37;41mHLT\033[m");
+					if (z80Ice.halted)
+					{
+						GPIOF->ODR &= !MASK_HALT; /* FIXME doesn't work */
+						serial_printf("\033[9;9H\033[37;41mHLT\033[m");
+					}
 
 					/* Decode the next instruction to be executed. */
 					Z80Debug(&z80Ice, dump_buffer, decode_buffer);

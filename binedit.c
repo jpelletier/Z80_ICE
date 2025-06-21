@@ -176,7 +176,7 @@ void binary_ed(ushort address)
 #else
         b = z80memRd(0,hl);
 #endif
-        //byte edit
+        // byte edit
         a = in_b_k(&b);
 
         switch(a)
@@ -200,6 +200,31 @@ void binary_ed(ushort address)
         	case 0x17:
         		hl = move_up(hl);
 				break;
+
+        	case 0x1B:
+        		a = serial_getchar();
+
+        		if (a == '[')
+        		{
+            		a = serial_getchar();
+
+            		switch(a)
+            		{
+            		case 'A':
+                		hl = move_up(hl);
+        				break;
+            		case 'B':
+                		hl = move_down(hl);
+        				break;
+            		case 'C':
+                		hl = move_right(hl);
+        				break;
+            		case 'D':
+                		hl = move_left(hl);
+        				break;
+            		}
+        		}
+        		break;
 
         	// absolute jump
         	case 'G':
@@ -254,11 +279,13 @@ void binary_ed(ushort address)
             	return;
 
             case 0x0d:
+            case ' ':
 #ifdef USE_CODE_TEST_BUFFER
             	Z80Mem[hl] = b;
 #else
             	z80memWr(0,hl,b);
 #endif
+        		hl = move_right(hl);
             	break;
 
             default:
