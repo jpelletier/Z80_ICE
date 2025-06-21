@@ -20,6 +20,7 @@ typedef struct
   volatile unsigned int tail;
 } ring_buffer;
 
+void Error_Handler(void);
 
 /* Initialize the ring buffer */
 void Ringbuf_init(void);
@@ -92,6 +93,7 @@ int Wait_for (char *string);
 /* the ISR for the uart. put it in the IRQ handler */
 void Uart_isr (UART_HandleTypeDef *huart);
 
+void MX_USART2_UART_Init(void);
 
 
 /*** Deprecated For now. This is not needed, try using other functions to meet the requirement ***/
