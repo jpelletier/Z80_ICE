@@ -19,6 +19,35 @@
 
 #include "z80_ice.h"
 
+const char msg_help[] =
+		"\033[46m"
+		"\033[3;71H+: incr  "
+		"\033[4;71H-: decr  "
+		"\033[5;71H!: invert"
+		"\033[6;71H~: negate"
+
+		"\033[7;71HR: revers"
+		"\033[8;71HBSP: SHR "
+		"\033[9;71HZ: 00    "
+		"\033[10;71HX: exit  "
+
+		"\033[11;71HSP: store"
+		"\033[12;71HCR: store"
+
+		"\033[45m"
+		"\033[13;71HT: L=00  "
+		"\033[14;71HH: ->H   "
+
+		"\033[15;71HL: ->L   "
+		"\033[16;71HG: jmp   "
+		"\033[17;71HU: ->HL  "
+		"\033[18;71HM: cmds  "
+
+		"\033[20;1H"
+        "J: Jump relative\r\n"
+        "N: Next 256 block\r\n"
+        "P: Prev 256 block\r\n\033[m";
+
 void move_cursor(ushort hl)
 {
 byte row = ((hl & 0xff) >> 4) + 3;
@@ -130,14 +159,19 @@ void update_dump(ushort hl)
 
 	//redraw
 	mem_dump(hl & 0xff00);
+	Uart_sendstring(msg_help);
 	move_cursor(hl);
 }
 
 //Byte edit
 //+      increment
 //-      decrement
+//!      invert
+//~      negate
+//R      reverse/swap bits 7:0 -> 0:7
 //bsp    remove previous hex
 //Z      00
+
 //enter  accept byte and exit byte edit
 //Q      scrap byte and exit byte edit
 //
@@ -145,7 +179,9 @@ void update_dump(ushort hl)
 //c-D    right
 //c-W    up
 //c-X    down
-//H      L = 00
+//T      L = 00
+//H		 value -> L
+//L      value -> L
 //P      previous 256-byte block
 //N      next 256-byte block
 //X      exit binary editor
@@ -159,10 +195,10 @@ void binary_ed(ushort address)
 
 	Uart_sendstring("\033[2JBinary editor\r\n");
     mem_dump(address);
-
-    Uart_sendstring("\r\nLeft: \033[37;42mctl-A\033[m  right: \033[37;42mctl-D\033[m  down: \033[37;42mctl-X\033[m up: \033[37;42mctl-W\033[m\r\n");
-    Uart_sendstring("High: \033[37;42mH\033[m  low: \033[37;42mL\033[m  Relative jump: \033[37;42mJ\033[m  Absolute jump: \033[37;42mG\033[m\r\n");
-    Uart_sendstring("Previous block: \033[37;42mP\033[m  next block: \033[37;42mN\033[m  store value: \033[37;42menter\033[m  exit editor: \033[37;42mX\033[m\r\n");
+	Uart_sendstring(msg_help);
+    //Uart_sendstring("\r\nLeft: \033[37;42mctl-A\033[m  right: \033[37;42mctl-D\033[m  down: \033[37;42mctl-X\033[m up: \033[37;42mctl-W\033[m\r\n");
+    //Uart_sendstring("High: \033[37;42mH\033[m  low: \033[37;42mL\033[m  Relative jump: \033[37;42mJ\033[m  Absolute jump: \033[37;42mG\033[m\r\n");
+    //Uart_sendstring("Previous block: \033[37;42mP\033[m  next block: \033[37;42mN\033[m  store value: \033[37;42menter\033[m  exit editor: \033[37;42mX\033[m\r\n");
 
     //goto row 3 column 6
     Uart_sendstring("\033[3;6H");
@@ -176,7 +212,7 @@ void binary_ed(ushort address)
 #else
         b = z80memRd(0,hl);
 #endif
-        // byte edit
+        //byte edit
         a = in_b_k(&b);
 
         switch(a)
@@ -234,6 +270,12 @@ void binary_ed(ushort address)
         		hl = b | (z80memRd(0,hl+1) << 8);
 #endif
 				update_dump(hl);
+				break;
+
+			case 'T':
+            	restore_color(hl);
+            	hl = hl & 0xff00;
+				move_cursor(hl);
 				break;
 
             // high -> H = b

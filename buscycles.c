@@ -74,7 +74,7 @@ void z80memWr(size_t param, ushort address, byte data)
 	Z80Mem[address] = data;
 }
 
-byte z80ioRd(size_t param, ushort address)
+byte PCXTioRd(size_t param, ushort address)
 {
 byte value;
 
@@ -85,7 +85,7 @@ byte value;
 	return value;
 }
 
-void z80ioWr(size_t param, ushort address, byte io_data)
+void PCXTioWr(size_t param, ushort address, byte io_data)
 {
 	serial_printf("Writing IO address %02X: %02X\r\n", address, io_data);
 }
@@ -253,7 +253,7 @@ byte z80memRd(size_t param, ushort address)
 	return data_bus;
 }
 
-void z80ioWr(size_t param, ushort address, byte io_data)
+void PCXTioWr(size_t param, ushort address, byte io_data)
 {
 	GPIOD->ODR = address;
 
@@ -284,7 +284,7 @@ void z80ioWr(size_t param, ushort address, byte io_data)
 	GPIOC->MODER = 0x55550000;
 }
 
-byte z80ioRd(size_t param, ushort address)
+byte PCXTioRd(size_t param, ushort address)
 {
 byte io_data;
 

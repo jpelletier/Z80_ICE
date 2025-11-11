@@ -29,7 +29,6 @@ byte Z80Mem[65536];
 
 void setup(void) {
 #ifdef USE_CODE_RING_BUFFER
-	MX_USART2_UART_Init();
 	Ringbuf_init();
 #endif //USE_CODE_RING_BUFFER
 	/*
@@ -41,8 +40,8 @@ void setup(void) {
 	z80Ice.memFetch = z80Fetch;
 	z80Ice.memRead = z80memRd;
 	z80Ice.memWrite = z80memWr;
-	z80Ice.ioRead = z80ioRd;
-	z80Ice.ioWrite = z80ioWr;
+	z80Ice.ioRead = PCXTioRd;
+	z80Ice.ioWrite = PCXTioWr;
 }
 
 void loop(void) {
