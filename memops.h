@@ -23,6 +23,5 @@
 void fillMemory(void);
 void moveMemory(void);
 void loadIntelHex(void);
-void progress(int i);
 
 #endif /* MEMOPS_H_ */
