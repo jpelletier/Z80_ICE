@@ -1,5 +1,11 @@
 # Z80_ICE
 
+This project was originally used with a commercial STM32F406ZGT6 black 
+board installed on a Z80 adapter. This blackboard is still available 
+but may not be compatible with the adapter. This project is now obsolete
+and is replaced by the project Z80_ICE2 which is part of the Alien Probe
+series. 
+
 STM32 CUBE IDE has a default project folder: stmcube.
 The Z80 project and the libZ80 are placed in this folder.
 This folder also has folders 'lib' and 'include' for linking with libraries.
